@@ -11,3 +11,11 @@ build/
 CLAUDE.md
 IMPLEMENTATION_SPEC.md
 FILE_GRAPH.md
+PHASE7_SPEC.md
+PHASE8_SPEC.md
+PHASE9_SPEC.md
+
+# RAG embedding cache
+.embedding_cache.json
+
+.pytest_cache/

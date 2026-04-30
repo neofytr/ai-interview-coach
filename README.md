@@ -38,6 +38,10 @@ The orchestrator is a state machine (`PLANNING → INTERVIEWING ↔ EVALUATING �
 - **Adjust difficulty?** Evaluator signals propagate to the interviewer's next prompt.
 - **Conclude?** When all topics are covered or the turn budget is exhausted.
 
+### Question Bank
+
+The Planner agent is grounded by a curated question bank (`data/question_bank.json`) containing ~110 real interview questions across behavioral, technical, and case categories. When generating an interview plan, the planner receives questions filtered by the candidate's focus area and draws `suggested_questions` from this bank, adapting them to fit the specific role. This reduces hallucinated or generic questions while still allowing the planner to generate original questions when needed.
+
 ### Key Design Decisions
 
 - **4 agents, not 3.** Separating the Planner from the Interviewer lets the interview be strategic (role-adaptive topics, weighted dimensions) rather than just reactive. The Planner thinks about what *should* happen; the Interviewer handles what *is* happening.
@@ -50,7 +54,7 @@ The orchestrator is a state machine (`PLANNING → INTERVIEWING ↔ EVALUATING �
 ### Tradeoffs
 
 - **Single LLM for all agents.** All four agents use the same model (default: `gpt-4o-mini`). A production system might use a stronger model for the Evaluator/Coach (where accuracy matters most) and a faster one for the Interviewer (where latency matters most). Kept uniform here for simplicity and cost.
-- **No RAG or external knowledge.** The system relies entirely on the LLM's parametric knowledge for role-specific interview content. A production version could retrieve real job descriptions, rubrics, or domain-specific evaluation criteria.
+- **No RAG or external knowledge.** The system relies on a static question bank and the LLM's parametric knowledge for role-specific interview content. A production version could retrieve real job descriptions, rubrics, or domain-specific evaluation criteria.
 - **Synchronous turn-taking.** The interview is strictly turn-based (question → answer → evaluate → next question). A more advanced system could stream the interviewer's response or evaluate in parallel with the next question generation.
 
 ## Setup
@@ -89,6 +93,18 @@ streamlit run app.py
 
 Web UI with a chat interface, progress sidebar, and post-interview feedback tabs including a radar chart of dimension scores.
 
+## Running Tests
+
+```bash
+pytest tests/ -v
+```
+
+All tests use `MockLLMClient` — zero API calls required. The test suite covers:
+- **Schema validation** — Pydantic model constraints (score bounds, weight ranges, turn limits)
+- **State machine logic** — Follow-up limits, topic advancement, conclusion triggers, signal handling
+- **Engine integration** — Full interview flow from start through feedback generation
+- **Agent contracts** — Each agent returns the correct type with expected structure
+
 ## Example Transcripts
 
 Three example interviews demonstrating the system's adaptive behavior:
@@ -112,7 +128,11 @@ ai-mock-interview-coach/
 │   └── schemas.py           # All Pydantic data models
 │
 ├── utils/
-│   └── llm.py               # Async OpenAI client with retries and JSON parsing
+│   ├── llm.py               # Async OpenAI client with retries and JSON parsing
+│   └── mock_llm.py          # Mock client for testing (no API calls)
+│
+├── data/
+│   └── question_bank.json   # Curated interview questions (~110 across 14 categories)
 │
 ├── prompts/
 │   ├── planner.md            # Planner agent system prompt
@@ -130,6 +150,13 @@ ai-mock-interview-coach/
 ├── orchestrator/
 │   ├── state.py              # Interview state machine
 │   └── engine.py             # Main orchestration engine
+│
+├── tests/
+│   ├── conftest.py           # Shared pytest fixtures
+│   ├── test_schemas.py       # Pydantic validation tests
+│   ├── test_state.py         # State machine logic tests
+│   ├── test_engine.py        # Integration tests
+│   └── test_agents.py        # Agent contract tests
 │
 └── transcripts/              # Example interview transcripts
     ├── strong_candidate.md

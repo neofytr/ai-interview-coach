@@ -64,9 +64,6 @@ def print_feedback(feedback) -> str:
     color = rating_colors.get(feedback.overall_rating, "white")
 
     md_lines = [
-        f"# Interview Feedback Report\n",
-        f"**Overall Rating:** [{color}]{feedback.overall_rating}[/{color}]  \n"
-        f"**Overall Score:** {feedback.overall_score:.1f} / 10.0\n",
         f"## Summary\n\n{feedback.summary}\n",
         "## Strengths\n",
     ]
@@ -87,9 +84,23 @@ def print_feedback(feedback) -> str:
     for dim, score in feedback.dimension_averages.items():
         md_lines.append(f"| {dim} | {score:.1f} |")
 
-    report_text = "\n".join(md_lines)
+    body_md = "\n".join(md_lines)
+
+    report_text = (
+        f"# Interview Feedback Report\n\n"
+        f"**Overall Rating:** {feedback.overall_rating}  \n"
+        f"**Overall Score:** {feedback.overall_score:.1f} / 10.0\n\n"
+        f"{body_md}"
+    )
+
     console.print()
-    console.print(Panel(Markdown(report_text), title="Feedback Report", border_style="green"))
+    console.print(
+        f"  [{color}]●[/{color}] [bold]Overall Rating:[/bold] "
+        f"[{color}]{feedback.overall_rating}[/{color}]  |  "
+        f"[bold]Score:[/bold] {feedback.overall_score:.1f} / 10.0\n"
+    )
+    console.print(Panel(Markdown(body_md), title="Feedback Report", border_style="green"))
+
     return report_text
 
 

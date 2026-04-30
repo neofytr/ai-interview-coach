@@ -1,0 +1,148 @@
+{
+  "behavioral": {
+    "leadership": [
+      "Tell me about a time you had to lead a team through a significant change or uncertainty.",
+      "Describe a situation where you had to make a difficult decision that was unpopular with your team.",
+      "Tell me about a time you mentored or coached someone. What was the outcome?",
+      "Describe a situation where you had to lead without formal authority.",
+      "Tell me about a time you delegated an important task. How did you decide what to delegate and to whom?",
+      "Share an example of how you motivated a team member who was underperforming.",
+      "Describe a time when you had to build consensus among people with very different opinions.",
+      "Tell me about a project where you had to set the vision and rally others behind it."
+    ],
+    "conflict_resolution": [
+      "Tell me about a time you had a significant disagreement with a coworker. How did you resolve it?",
+      "Describe a situation where you received feedback you disagreed with. How did you handle it?",
+      "Tell me about a time you had to mediate a conflict between two team members.",
+      "Describe a situation where you had to push back on a decision made by someone more senior.",
+      "Tell me about a time a project was going off track because of interpersonal issues. What did you do?",
+      "Share an example of a miscommunication that caused real problems. How did you fix it?",
+      "Describe a time you had to deliver difficult or critical feedback to someone.",
+      "Tell me about a situation where you had to compromise on something important to you."
+    ],
+    "failure_and_growth": [
+      "Tell me about your biggest professional failure. What did you learn from it?",
+      "Describe a time when you missed a deadline or delivered late. What happened?",
+      "Tell me about a time you made a wrong decision. How did you realize it and course-correct?",
+      "Share an example of constructive criticism that fundamentally changed your approach to work.",
+      "Describe a time when a project you owned didn't achieve its goals. What would you do differently?",
+      "Tell me about a skill you struggled to develop. What was your process for improving?",
+      "Describe a situation where you underestimated the complexity of something. What happened?",
+      "Tell me about a time you had to admit you didn't know something in a professional setting."
+    ],
+    "collaboration": [
+      "Tell me about a time you worked with a cross-functional team. What was your role and what made it effective?",
+      "Describe a situation where you had to work closely with someone whose working style was very different from yours.",
+      "Tell me about a time you helped a teammate who was struggling with their workload.",
+      "Share an example of a successful collaboration where your specific contribution was essential to the outcome.",
+      "Describe a time when you had to work with a remote or distributed team. What challenges did you face?",
+      "Tell me about a project where you had to onboard quickly and contribute to an already-moving team.",
+      "Describe a situation where you identified and filled a gap that wasn't formally your responsibility.",
+      "Tell me about a time you had to gain buy-in from multiple stakeholders with conflicting priorities."
+    ],
+    "prioritization": [
+      "Tell me about a time you had to manage multiple competing priorities with tight deadlines.",
+      "Describe how you decide what to work on when everything feels urgent and important.",
+      "Tell me about a time you had to say no to a request from a stakeholder or manager. How did you handle it?",
+      "Share an example of when you had to deprioritize something you cared about. What was your reasoning?",
+      "Describe a time you realized you were spending too much effort on the wrong thing. What did you do?",
+      "Tell me about how you plan your work for a typical week. What frameworks or tools do you use?",
+      "Describe a situation where shifting priorities disrupted your plan. How did you adapt?",
+      "Tell me about a time you had to balance short-term deliverables with long-term strategic goals."
+    ]
+  },
+  "technical": {
+    "software_engineering": [
+      "Walk me through how you would debug a production issue that only occurs under heavy load.",
+      "Explain a technical decision you made that involved significant tradeoffs. What did you choose and why?",
+      "Describe how you approach code reviews. What do you look for and why?",
+      "Tell me about a time you had to refactor a significant piece of code. What drove the decision?",
+      "How do you approach writing tests for a new feature? Walk me through your testing strategy.",
+      "Describe a time you had to optimize the performance of a slow system or database query.",
+      "Walk me through how you would design the data model for an e-commerce shopping cart.",
+      "Tell me about a technical debt decision you made. When did you choose to take on debt and when did you pay it off?"
+    ],
+    "data_analysis": [
+      "Walk me through your process for investigating a sudden drop in a key business metric.",
+      "How would you design an A/B test to measure the impact of a new checkout flow?",
+      "Explain the difference between correlation and causation with a concrete real-world example.",
+      "Describe how you would build a dashboard to monitor the health of a subscription business.",
+      "What is your approach to cleaning and validating a messy dataset before analysis?",
+      "Walk me through how you would segment customers for a targeted marketing campaign.",
+      "How would you determine the sample size needed for a statistically significant experiment?",
+      "Describe a time you used data to change someone's mind about a business decision."
+    ],
+    "system_design": [
+      "Design a URL shortening service like bit.ly. Walk me through the key components.",
+      "How would you design a real-time notification system for a social media application?",
+      "Design a rate limiter for an API. What approaches would you consider and what are the tradeoffs?",
+      "How would you design a file storage and sharing system similar to Google Drive?",
+      "Walk me through how you'd design a chat application that supports both 1:1 and group messaging.",
+      "How would you design a search autocomplete system for an e-commerce site?",
+      "Design a system to ingest and process millions of IoT device events per second.",
+      "How would you design a content delivery network for serving static assets globally?"
+    ],
+    "frontend": [
+      "How would you optimize a React application that has become noticeably slow to render?",
+      "Explain how you would implement authentication and protected routes in a single-page application.",
+      "Describe your approach to making a web application accessible and WCAG compliant.",
+      "How would you implement infinite scrolling with virtualization for a feed of thousands of items?",
+      "Walk me through how you would handle state management in a complex React application with many shared states.",
+      "How would you implement a responsive design system that works across mobile, tablet, and desktop?",
+      "Describe your approach to handling errors and edge cases gracefully in a frontend application.",
+      "How would you optimize the initial loading performance of a content-heavy web page?"
+    ],
+    "backend": [
+      "How would you design a RESTful API for a task management application? Walk me through the endpoints and data model.",
+      "Explain the tradeoffs between SQL and NoSQL databases. When would you choose each?",
+      "How would you implement caching to reduce database load in a high-traffic application?",
+      "Describe your approach to handling database migrations safely in a production environment.",
+      "How would you design a job queue for processing background tasks reliably at scale?",
+      "Walk me through implementing authentication and authorization for a microservices architecture.",
+      "How would you handle data consistency across multiple services in a distributed system?",
+      "Describe your approach to monitoring, logging, and alerting for a production backend service."
+    ]
+  },
+  "case": {
+    "product_sense": [
+      "How would you improve Instagram's Explore page to increase user engagement?",
+      "If you were the PM for Spotify, how would you reduce subscriber churn?",
+      "Design a new feature for LinkedIn that helps entry-level job seekers stand out.",
+      "How would you measure the success of a new onboarding flow for a B2B SaaS product?",
+      "You're the PM for a food delivery app. How would you decide between building a loyalty program or improving delivery speed?",
+      "How would you approach launching an existing product in a new international market?",
+      "A key feature has low adoption despite positive user research. How would you diagnose and fix this?",
+      "Design a notification strategy for a productivity app that maximizes engagement without annoying users."
+    ],
+    "estimation": [
+      "How many piano tuners are there in Chicago? Walk me through your reasoning.",
+      "Estimate the total annual revenue of all Starbucks locations in New York City.",
+      "How many rides does Uber complete globally in a single day?",
+      "Estimate the total storage space needed for all of YouTube's video content.",
+      "How many smartphones are sold worldwide every day?",
+      "Estimate the number of search queries Google processes per second.",
+      "How many commercial flights take off globally in a single day?",
+      "Estimate the total addressable market for online grocery delivery in the United States."
+    ],
+    "strategy": [
+      "A competitor just launched a feature that your users have been requesting for months. How do you respond?",
+      "Your company's growth has plateaued after two years of strong growth. What strategic options would you explore?",
+      "How would you evaluate whether to build a feature in-house or integrate a third-party solution?",
+      "You're given a fixed budget to invest in one of three growth channels: paid ads, content marketing, or partnerships. How would you decide?",
+      "Your product has strong B2C traction but your CEO wants to expand into B2B. How would you evaluate this pivot?",
+      "How would you approach pricing strategy for a new SaaS product entering a crowded market?",
+      "Your mobile app is growing rapidly in Southeast Asia but your team is based in the US. What's your strategy?",
+      "How would you decide whether to sunset a feature that 5% of users love but costs significant engineering resources to maintain?"
+    ],
+    "metrics": [
+      "What metrics would you track to measure the health of a two-sided marketplace like Airbnb?",
+      "Your DAU/MAU ratio has dropped 10% over three months. How would you investigate this?",
+      "Define the north star metric for a language learning app and the input metrics that drive it.",
+      "How would you measure the success of a referral program? What leading and lagging indicators would you track?",
+      "Your conversion rate improved 15% but revenue per user declined 10%. What might be happening?",
+      "Design a metrics framework for a new feature that helps teams collaborate asynchronously.",
+      "How would you determine whether a free trial or freemium model is the right acquisition strategy?",
+      "Your retention curve shows a steep drop after day 3. What analyses would you run to understand why?"
+    ]
+  }
+}

@@ -78,6 +78,12 @@ class LLMClient:
         raise last_exc  # type: ignore[misc]
 
     @staticmethod
+    def load_question_bank() -> dict:
+        path = PROJECT_ROOT / "data" / "question_bank.json"
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+
+    @staticmethod
     def _parse_json(raw: str, model: type[T]) -> T:
         text = raw.strip()
         if text.startswith("```"):

@@ -72,6 +72,10 @@ You MUST respond with ONLY valid JSON matching this exact schema — no markdown
 }
 </output_format>
 
+<question_bank_usage>
+When a `<question_bank>` is provided in the input, draw your `suggested_questions` primarily from this curated bank. Select questions that are most relevant to the target role and adapt their wording as needed to fit the specific context. You may also generate original questions when the bank doesn't cover a needed area, or when a role-specific variation would be more effective. The bank provides a strong foundation — use it as a starting point, not a rigid constraint.
+</question_bank_usage>
+
 <constraints>
 - Topics: minimum 3, maximum 5.
 - Evaluation dimensions: minimum 4, maximum 6. Weights must sum to approximately 1.0.

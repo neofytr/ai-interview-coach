@@ -106,6 +106,13 @@ def render_sidebar_progress() -> None:
     model = os.getenv("LLM_MODEL", "gpt-4o-mini")
     st.sidebar.caption(f"Powered by `{model}`")
 
+    if st.session_state.interview_complete:
+        st.sidebar.divider()
+        if st.sidebar.button("Start New Interview", use_container_width=True):
+            for key in list(st.session_state.keys()):
+                del st.session_state[key]
+            st.rerun()
+
 
 def render_chat() -> None:
     for msg in st.session_state.messages:
@@ -142,6 +149,33 @@ def render_chat() -> None:
             st.rerun()
 
 
+def format_feedback_markdown(feedback) -> str:
+    lines = [
+        f"# Interview Feedback Report\n",
+        f"**Overall Rating:** {feedback.overall_rating}  ",
+        f"**Overall Score:** {feedback.overall_score:.1f} / 10.0\n",
+        f"## Summary\n\n{feedback.summary}\n",
+        "## Strengths\n",
+    ]
+    for i, s in enumerate(feedback.strengths, 1):
+        lines.append(f"{i}. {s}")
+    lines.append("\n## Areas for Improvement\n")
+    for i, a in enumerate(feedback.areas_for_improvement, 1):
+        lines.append(f"{i}. {a}")
+    lines.append("\n## Practice Questions\n")
+    for i, q in enumerate(feedback.practice_questions, 1):
+        lines.append(f"{i}. {q}")
+    lines.append("\n## Action Items\n")
+    for i, item in enumerate(feedback.action_items, 1):
+        lines.append(f"{i}. {item}")
+    lines.append("\n## Dimension Scores\n")
+    lines.append("| Dimension | Score |")
+    lines.append("|-----------|-------|")
+    for dim, score in feedback.dimension_averages.items():
+        lines.append(f"| {dim} | {score:.1f} |")
+    return "\n".join(lines)
+
+
 def render_feedback() -> None:
     feedback = st.session_state.feedback
 
@@ -156,19 +190,23 @@ def render_feedback() -> None:
     with tab_transcript:
         render_transcript_tab()
 
+    st.divider()
+    report_md = format_feedback_markdown(feedback)
+    st.download_button(
+        label="Download Feedback Report",
+        data=report_md,
+        file_name="interview_feedback.md",
+        mime="text/markdown",
+    )
+
 
 def render_feedback_tab(feedback) -> None:
-    rating_colors = {
-        "Strong Hire": "green",
-        "Hire": "green",
-        "Lean Hire": "orange",
-        "Lean No Hire": "red",
-        "No Hire": "red",
-    }
+    color_map = {"Strong Hire": "green", "Hire": "green", "Lean Hire": "orange", "Lean No Hire": "red", "No Hire": "red"}
+    color = color_map.get(feedback.overall_rating, "gray")
 
     col1, col2 = st.columns(2)
     with col1:
-        st.metric("Overall Rating", feedback.overall_rating)
+        st.markdown(f"### :{color}[{feedback.overall_rating}]")
     with col2:
         st.metric("Overall Score", f"{feedback.overall_score:.1f} / 10")
 
