@@ -110,10 +110,12 @@ All settings are managed through environment variables or a `.env` file via `pyd
 python main.py                    # Standard mode
 python main.py -v                 # Verbose mode (per-turn scores + debug logs)
 python main.py -o result.json     # Save full interview result as JSON
-python main.py -v -o result.json  # Both
+python main.py --demo             # Demo mode — no API key needed
 ```
 
 Interactive terminal interface with rich formatting. You'll be prompted for your target role, background, and focus area, then interviewed in real time. With `--verbose`, you'll see per-turn dimension scores and evaluator signals after each answer.
+
+Use `--demo` to try the system without an API key — it runs with pre-scripted mock responses that demonstrate the full interview flow, adaptive evaluation, and feedback generation.
 
 ### Streamlit
 
@@ -121,7 +123,7 @@ Interactive terminal interface with rich formatting. You'll be prompted for your
 streamlit run app.py
 ```
 
-Web UI with a chat interface, progress sidebar, and post-interview feedback tabs including:
+Web UI with a chat interface, progress sidebar, and post-interview feedback tabs. If no API key is set, a "Try Demo Mode" button lets you explore the full UI with mock responses. Features include:
 - **Feedback tab:** Overall rating, summary, strengths/weaknesses, practice questions, action items
 - **Scores tab:** Radar chart of dimension averages, score progression line chart (overall and per-dimension across turns), dimension breakdown table
 - **Transcript tab:** Full conversation with expandable per-turn evaluations showing dimension scores, strengths, weaknesses, and evaluator signals

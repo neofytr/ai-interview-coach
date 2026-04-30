@@ -25,6 +25,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="AI Mock Interview Coach — CLI")
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose per-turn output and debug logging")
     parser.add_argument("-o", "--output", type=str, default=None, help="Save interview result as JSON to this path")
+    parser.add_argument("--demo", action="store_true", help="Run in demo mode with mock responses (no API key needed)")
     return parser.parse_args()
 
 
@@ -33,12 +34,14 @@ def check_api_key() -> bool:
     if not settings.openai_api_key or settings.openai_api_key == "your-api-key-here":
         console.print(
             Panel(
-                "[red]OPENAI_API_KEY not found or not set.[/red]\n\n"
-                "1. Copy .env.example to .env\n"
-                "2. Add your OpenAI API key\n"
-                "3. Run again",
+                "[yellow]OPENAI_API_KEY not found or not set.[/yellow]\n\n"
+                "To use with a real LLM:\n"
+                "  1. Copy .env.example to .env\n"
+                "  2. Add your OpenAI API key\n"
+                "  3. Run again\n\n"
+                "Or run with [bold]--demo[/bold] to try the system with mock responses.",
                 title="Missing API Key",
-                border_style="red",
+                border_style="yellow",
             )
         )
         return False
@@ -165,8 +168,14 @@ def save_json_output(result, output_path: str) -> None:
     console.print(f"\n[green]JSON output saved to[/green] [bold]{path}[/bold]")
 
 
-async def run_interview(verbose: bool = False, output: str | None = None) -> None:
-    engine = InterviewEngine()
+async def run_interview(verbose: bool = False, output: str | None = None, demo: bool = False) -> None:
+    if demo:
+        from utils.mock_llm import MockLLMClient
+
+        engine = InterviewEngine(llm=MockLLMClient())
+        console.print("[dim]Running in demo mode with mock responses.[/dim]\n")
+    else:
+        engine = InterviewEngine()
 
     profile = collect_profile()
 
@@ -252,11 +261,11 @@ def main() -> None:
         )
     )
 
-    if not check_api_key():
+    if not args.demo and not check_api_key():
         sys.exit(1)
 
     try:
-        asyncio.run(run_interview(verbose=args.verbose, output=args.output))
+        asyncio.run(run_interview(verbose=args.verbose, output=args.output, demo=args.demo))
     except Exception as e:
         console.print(f"\n[red]Error: {e}[/red]")
         sys.exit(1)

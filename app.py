@@ -31,6 +31,7 @@ def init_session_state() -> None:
         "current_turn": 0,
         "max_turns": 0,
         "current_topic": "",
+        "demo_mode": False,
     }
     for key, val in defaults.items():
         if key not in st.session_state:
@@ -68,7 +69,12 @@ def render_sidebar_setup() -> None:
             background=background.strip() or None,
             focus_area=FocusArea(focus),
         )
-        engine = InterviewEngine()
+        if st.session_state.demo_mode:
+            from utils.mock_llm import MockLLMClient
+
+            engine = InterviewEngine(llm=MockLLMClient())
+        else:
+            engine = InterviewEngine()
 
         with st.spinner("Planning your interview..."):
             plan, first_question = run_async(engine.start_interview(profile))
@@ -375,9 +381,17 @@ def main() -> None:
 
     init_session_state()
 
-    if not check_api_key():
-        st.error("**OPENAI_API_KEY not found.** Copy `.env.example` to `.env` and add your API key.")
+    if not check_api_key() and not st.session_state.demo_mode:
+        st.warning(
+            "**OPENAI_API_KEY not found.** Copy `.env.example` to `.env` and add your API key, or use demo mode below."
+        )
+        if st.button("Try Demo Mode", type="primary"):
+            st.session_state.demo_mode = True
+            st.rerun()
         st.stop()
+
+    if st.session_state.demo_mode and not st.session_state.interview_started:
+        st.info("Running in demo mode with mock responses. Set `OPENAI_API_KEY` in `.env` for real interviews.")
 
     if not st.session_state.interview_started:
         render_sidebar_setup()
