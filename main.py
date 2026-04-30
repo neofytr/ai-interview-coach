@@ -120,7 +120,7 @@ def save_transcript(result, report_text: str) -> None:
     filepath = transcripts_dir / filename
 
     lines = [
-        f"# Mock Interview Transcript\n",
+        "# Mock Interview Transcript\n",
         f"**Role:** {result.profile.target_role}",
         f"**Background:** {result.profile.background or 'Not provided'}",
         f"**Focus Area:** {result.profile.focus_area.value}\n",
@@ -174,8 +174,7 @@ async def run_interview() -> None:
 
             state = engine.get_state()
             console.print(
-                f"\n[dim]Turn {state['current_turn']}/{state['max_turns']} | "
-                f"Topic: {state['current_topic']}[/dim]"
+                f"\n[dim]Turn {state['current_turn']}/{state['max_turns']} | Topic: {state['current_topic']}[/dim]"
             )
 
             if next_question is None:

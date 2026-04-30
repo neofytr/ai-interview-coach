@@ -74,8 +74,11 @@ class TestEvaluatorAgent:
         agent = EvaluatorAgent(mock_llm)
         dims = [EvaluationDimension(name="Comm", description="Communication", weight=1.0)]
         result = await agent.evaluate(
-            question="Q", answer="A", turn_number=1,
-            dimensions=dims, role_context="ctx",
+            question="Q",
+            answer="A",
+            turn_number=1,
+            dimensions=dims,
+            role_context="ctx",
         )
         assert len(result.dimension_scores) > 0
 

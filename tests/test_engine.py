@@ -135,7 +135,7 @@ class TestFullFlow:
             if next_q is None:
                 break
 
-        feedback = await engine.end_interview()
+        await engine.end_interview()
         result = engine.get_result()
 
         assert answers_given >= 1

@@ -21,9 +21,7 @@ class InterviewEngine:
         self._profile: CandidateProfile | None = None
         self._feedback: FeedbackReport | None = None
 
-    async def start_interview(
-        self, profile: CandidateProfile
-    ) -> tuple[InterviewPlan, str]:
+    async def start_interview(self, profile: CandidateProfile) -> tuple[InterviewPlan, str]:
         self._profile = profile
         plan = await self.planner.create_plan(profile)
         self.state_manager = InterviewStateManager(plan)
@@ -37,9 +35,7 @@ class InterviewEngine:
 
         return plan, first_question
 
-    async def submit_answer(
-        self, answer: str
-    ) -> tuple[str | None, TurnEvaluation]:
+    async def submit_answer(self, answer: str) -> tuple[str | None, TurnEvaluation]:
         sm = self.state_manager
         assert sm is not None
 
@@ -92,11 +88,7 @@ class InterviewEngine:
         sm = self.state_manager
         if sm is None:
             return {"state": "not_started"}
-        topic_name = (
-            sm.get_current_topic().name
-            if sm.current_topic_index < len(sm.plan.topics)
-            else "Complete"
-        )
+        topic_name = sm.get_current_topic().name if sm.current_topic_index < len(sm.plan.topics) else "Complete"
         return {
             "state": sm.state.value,
             "current_turn": sm.current_turn,

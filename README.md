@@ -1,5 +1,10 @@
 # AI Mock Interview Coach
 
+[![CI](https://github.com/neofytr/ai-interview-coach/actions/workflows/ci.yml/badge.svg)](https://github.com/neofytr/ai-interview-coach/actions/workflows/ci.yml)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+
 A multi-agent AI system that conducts adaptive mock interviews and delivers actionable coaching feedback.
 
 ## Overview

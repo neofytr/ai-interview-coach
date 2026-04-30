@@ -1,5 +1,3 @@
-import pytest
-
 from models import DimensionScore, EvaluatorSignal, TurnEvaluation
 from orchestrator.state import InterviewStateManager
 

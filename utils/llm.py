@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 from typing import TypeVar
 
-from openai import AsyncOpenAI, APIError, APITimeoutError, RateLimitError
+from openai import APIError, APITimeoutError, AsyncOpenAI, RateLimitError
 from pydantic import BaseModel
 
 T = TypeVar("T", bound=BaseModel)

@@ -20,15 +20,8 @@ class CoachAgent(BaseAgent):
         conversation: list[Message],
         evaluations: list[TurnEvaluation],
     ) -> FeedbackReport:
-        transcript = "\n".join(
-            f"{msg.role.capitalize()}: {msg.content}"
-            for msg in conversation
-        )
-        evals_json = (
-            "[\n"
-            + ",\n".join(e.model_dump_json(indent=2) for e in evaluations)
-            + "\n]"
-        )
+        transcript = "\n".join(f"{msg.role.capitalize()}: {msg.content}" for msg in conversation)
+        evals_json = "[\n" + ",\n".join(e.model_dump_json(indent=2) for e in evaluations) + "\n]"
         user_message = (
             f"<candidate_profile>\n{profile.model_dump_json(indent=2)}\n</candidate_profile>\n\n"
             f"<interview_plan>\n{plan.model_dump_json(indent=2)}\n</interview_plan>\n\n"

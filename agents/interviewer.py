@@ -15,10 +15,7 @@ class InterviewerAgent(BaseAgent):
         follow_up_suggestion: str | None = None,
     ) -> str:
         if conversation:
-            conv_lines = "\n".join(
-                f"{msg.role.capitalize()}: {msg.content}"
-                for msg in conversation
-            )
+            conv_lines = "\n".join(f"{msg.role.capitalize()}: {msg.content}" for msg in conversation)
         else:
             conv_lines = "No conversation yet — this is the opening question."
 

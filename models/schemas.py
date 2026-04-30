@@ -1,10 +1,9 @@
-from enum import Enum
-from typing import Optional
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
 
-class FocusArea(str, Enum):
+class FocusArea(StrEnum):
     behavioral = "behavioral"
     technical = "technical"
     case = "case"
@@ -13,7 +12,7 @@ class FocusArea(str, Enum):
 
 class CandidateProfile(BaseModel):
     target_role: str
-    background: Optional[str] = None
+    background: str | None = None
     focus_area: FocusArea
 
 
@@ -39,7 +38,7 @@ class InterviewPlan(BaseModel):
     total_turns: int = Field(ge=1, le=15)
 
 
-class EvaluatorSignal(str, Enum):
+class EvaluatorSignal(StrEnum):
     probe_deeper = "probe_deeper"
     move_on = "move_on"
     increase_difficulty = "increase_difficulty"
@@ -60,7 +59,7 @@ class TurnEvaluation(BaseModel):
     strengths: list[str]
     weaknesses: list[str]
     signals: list[EvaluatorSignal]
-    follow_up_suggestion: Optional[str] = None
+    follow_up_suggestion: str | None = None
 
 
 class FeedbackReport(BaseModel):
@@ -80,7 +79,7 @@ class Message(BaseModel):
     turn_number: int
 
 
-class InterviewState(str, Enum):
+class InterviewState(StrEnum):
     planning = "planning"
     interviewing = "interviewing"
     evaluating = "evaluating"

@@ -22,9 +22,7 @@ class InterviewStateManager:
         self._topic_followups: dict[int, int] = defaultdict(int)
 
     def add_message(self, role: str, content: str) -> None:
-        self.conversation.append(
-            Message(role=role, content=content, turn_number=self.current_turn)
-        )
+        self.conversation.append(Message(role=role, content=content, turn_number=self.current_turn))
 
     def add_evaluation(self, evaluation: TurnEvaluation) -> None:
         self.evaluations.append(evaluation)
@@ -36,10 +34,7 @@ class InterviewStateManager:
         return ""
 
     def should_conclude(self) -> bool:
-        return (
-            self.current_turn >= self.max_turns
-            or self.current_topic_index >= len(self.plan.topics)
-        )
+        return self.current_turn >= self.max_turns or self.current_topic_index >= len(self.plan.topics)
 
     def decide_next_action(self, evaluation: TurnEvaluation) -> str:
         if self.should_conclude():

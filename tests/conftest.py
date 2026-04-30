@@ -83,7 +83,11 @@ def sample_feedback():
         summary="Solid performance with good communication and structured thinking.",
         dimension_averages={"Communication Clarity": 7.5, "Problem-Solving": 6.8},
         strengths=["Strong structured communication", "Good use of examples", "Self-aware about gaps"],
-        areas_for_improvement=["Add more depth to analytical answers", "Quantify impact consistently", "Explore systemic root causes"],
+        areas_for_improvement=[
+            "Add more depth to analytical answers",
+            "Quantify impact consistently",
+            "Explore systemic root causes",
+        ],
         practice_questions=["Tell me about a failure.", "Walk me through a metrics framework."],
         action_items=["Build a story bank with 8-10 examples", "Practice STAR format for 90 seconds per answer"],
     )

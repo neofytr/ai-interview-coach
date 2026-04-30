@@ -151,7 +151,7 @@ def render_chat() -> None:
 
 def format_feedback_markdown(feedback) -> str:
     lines = [
-        f"# Interview Feedback Report\n",
+        "# Interview Feedback Report\n",
         f"**Overall Rating:** {feedback.overall_rating}  ",
         f"**Overall Score:** {feedback.overall_score:.1f} / 10.0\n",
         f"## Summary\n\n{feedback.summary}\n",
@@ -179,9 +179,7 @@ def format_feedback_markdown(feedback) -> str:
 def render_feedback() -> None:
     feedback = st.session_state.feedback
 
-    tab_feedback, tab_scores, tab_transcript = st.tabs(
-        ["Feedback", "Scores", "Transcript"]
-    )
+    tab_feedback, tab_scores, tab_transcript = st.tabs(["Feedback", "Scores", "Transcript"])
 
     with tab_feedback:
         render_feedback_tab(feedback)
@@ -201,7 +199,13 @@ def render_feedback() -> None:
 
 
 def render_feedback_tab(feedback) -> None:
-    color_map = {"Strong Hire": "green", "Hire": "green", "Lean Hire": "orange", "Lean No Hire": "red", "No Hire": "red"}
+    color_map = {
+        "Strong Hire": "green",
+        "Hire": "green",
+        "Lean Hire": "orange",
+        "Lean No Hire": "red",
+        "No Hire": "red",
+    }
     color = color_map.get(feedback.overall_rating, "gray")
 
     col1, col2 = st.columns(2)
@@ -283,9 +287,7 @@ def main() -> None:
     init_session_state()
 
     if not check_api_key():
-        st.error(
-            "**OPENAI_API_KEY not found.** Copy `.env.example` to `.env` and add your API key."
-        )
+        st.error("**OPENAI_API_KEY not found.** Copy `.env.example` to `.env` and add your API key.")
         st.stop()
 
     if not st.session_state.interview_started:

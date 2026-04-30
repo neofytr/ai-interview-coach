@@ -9,7 +9,6 @@ from models import (
     FocusArea,
     InterviewPlan,
     InterviewState,
-    InterviewTopic,
     Message,
     TurnEvaluation,
 )

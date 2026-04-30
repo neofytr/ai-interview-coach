@@ -15,10 +15,7 @@ class EvaluatorAgent(BaseAgent):
         dimensions: list[EvaluationDimension],
         role_context: str,
     ) -> TurnEvaluation:
-        dims_text = "\n".join(
-            f"- {d.name} (weight: {d.weight}): {d.description}"
-            for d in dimensions
-        )
+        dims_text = "\n".join(f"- {d.name} (weight: {d.weight}): {d.description}" for d in dimensions)
         user_message = (
             f"<role_context>\n{role_context}\n</role_context>\n\n"
             f"<turn_number>{turn_number}</turn_number>\n\n"
