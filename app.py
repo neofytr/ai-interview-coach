@@ -1,5 +1,4 @@
 import asyncio
-import os
 
 import plotly.graph_objects as go
 import streamlit as st
@@ -7,6 +6,7 @@ from dotenv import load_dotenv
 
 from models import CandidateProfile, FocusArea
 from orchestrator import InterviewEngine
+from utils.config import get_settings
 
 load_dotenv()
 
@@ -38,8 +38,8 @@ def init_session_state() -> None:
 
 
 def check_api_key() -> bool:
-    key = os.getenv("OPENAI_API_KEY")
-    return bool(key and key != "your-api-key-here")
+    settings = get_settings()
+    return bool(settings.openai_api_key and settings.openai_api_key != "your-api-key-here")
 
 
 def render_sidebar_setup() -> None:
@@ -100,11 +100,11 @@ def render_sidebar_progress() -> None:
         st.sidebar.divider()
         st.sidebar.caption("**Topics**")
         for t in topics:
-            st.sidebar.caption(f"• {t}")
+            st.sidebar.caption(f"  {t}")
 
     st.sidebar.divider()
-    model = os.getenv("LLM_MODEL", "gpt-4o-mini")
-    st.sidebar.caption(f"Powered by `{model}`")
+    settings = get_settings()
+    st.sidebar.caption(f"Powered by `{settings.llm_model}`")
 
     if st.session_state.interview_complete:
         st.sidebar.divider()
@@ -262,6 +262,74 @@ def render_scores_tab(feedback) -> None:
     )
     st.plotly_chart(fig, use_container_width=True)
 
+    evaluations = st.session_state.evaluations
+    if evaluations:
+        st.divider()
+        st.subheader("Score Progression")
+
+        turns = [e.turn_number for e in evaluations]
+        overall_scores = [e.overall_score for e in evaluations]
+
+        fig_line = go.Figure()
+        fig_line.add_trace(
+            go.Scatter(
+                x=turns,
+                y=overall_scores,
+                mode="lines+markers",
+                name="Overall Score",
+                line=dict(color="#636EFA", width=3),
+                marker=dict(size=8),
+            )
+        )
+        fig_line.update_layout(
+            title="Overall Score by Turn",
+            xaxis_title="Turn",
+            yaxis_title="Score",
+            yaxis=dict(range=[0, 10]),
+            xaxis=dict(dtick=1),
+            margin=dict(t=40, b=40, l=60, r=40),
+        )
+        st.plotly_chart(fig_line, use_container_width=True)
+
+        all_dims = set()
+        for e in evaluations:
+            for ds in e.dimension_scores:
+                all_dims.add(ds.dimension)
+        all_dims = sorted(all_dims)
+
+        if all_dims:
+            colors = ["#636EFA", "#EF553B", "#00CC96", "#AB63FA", "#FFA15A", "#19D3F3", "#FF6692"]
+            fig_multi = go.Figure()
+            for idx, dim in enumerate(all_dims):
+                dim_turns = []
+                dim_scores = []
+                for e in evaluations:
+                    for ds in e.dimension_scores:
+                        if ds.dimension == dim:
+                            dim_turns.append(e.turn_number)
+                            dim_scores.append(ds.score)
+                            break
+                fig_multi.add_trace(
+                    go.Scatter(
+                        x=dim_turns,
+                        y=dim_scores,
+                        mode="lines+markers",
+                        name=dim,
+                        line=dict(color=colors[idx % len(colors)]),
+                        marker=dict(size=6),
+                    )
+                )
+            fig_multi.update_layout(
+                title="Dimension Scores by Turn",
+                xaxis_title="Turn",
+                yaxis_title="Score",
+                yaxis=dict(range=[0, 10]),
+                xaxis=dict(dtick=1),
+                margin=dict(t=40, b=40, l=60, r=40),
+                legend=dict(orientation="h", yanchor="bottom", y=-0.3),
+            )
+            st.plotly_chart(fig_multi, use_container_width=True)
+
     st.divider()
     st.subheader("Dimension Breakdown")
     score_data = {
@@ -272,9 +340,30 @@ def render_scores_tab(feedback) -> None:
 
 
 def render_transcript_tab() -> None:
-    for msg in st.session_state.messages:
+    messages = st.session_state.messages
+    evaluations = st.session_state.evaluations
+
+    eval_index = 0
+    for msg in messages:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
+
+        if msg["role"] == "user" and eval_index < len(evaluations):
+            ev = evaluations[eval_index]
+            with st.expander(f"Turn {ev.turn_number} Evaluation (Score: {ev.overall_score:.1f})", expanded=False):
+                cols = st.columns(len(ev.dimension_scores))
+                for col, ds in zip(cols, ev.dimension_scores, strict=True):
+                    with col:
+                        st.metric(ds.dimension, f"{ds.score}/10")
+
+                if ev.strengths:
+                    st.markdown("**Strengths:** " + "; ".join(ev.strengths))
+                if ev.weaknesses:
+                    st.markdown("**Weaknesses:** " + "; ".join(ev.weaknesses))
+
+                signals = ", ".join(s.value for s in ev.signals) if ev.signals else "none"
+                st.caption(f"Signals: {signals}")
+            eval_index += 1
 
 
 def main() -> None:

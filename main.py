@@ -1,5 +1,6 @@
+import argparse
 import asyncio
-import os
+import json
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -12,14 +13,24 @@ from rich.prompt import Prompt
 
 from models import CandidateProfile, FocusArea
 from orchestrator import InterviewEngine
+from utils.config import get_settings
+from utils.logger import set_verbose
 
 load_dotenv()
 
 console = Console()
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="AI Mock Interview Coach — CLI")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose per-turn output and debug logging")
+    parser.add_argument("-o", "--output", type=str, default=None, help="Save interview result as JSON to this path")
+    return parser.parse_args()
+
+
 def check_api_key() -> bool:
-    if not os.getenv("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY") == "your-api-key-here":
+    settings = get_settings()
+    if not settings.openai_api_key or settings.openai_api_key == "your-api-key-here":
         console.print(
             Panel(
                 "[red]OPENAI_API_KEY not found or not set.[/red]\n\n"
@@ -50,6 +61,14 @@ def collect_profile() -> CandidateProfile:
         target_role=role,
         background=background or None,
         focus_area=FocusArea(focus),
+    )
+
+
+def print_verbose_evaluation(evaluation) -> None:
+    dim_scores = ", ".join(f"{d.dimension}: {d.score}" for d in evaluation.dimension_scores)
+    signals = ", ".join(s.value for s in evaluation.signals) if evaluation.signals else "none"
+    console.print(
+        f"\n  [dim]Score: {evaluation.overall_score:.1f} | Signals: {signals} | Dimensions: {dim_scores}[/dim]"
     )
 
 
@@ -138,7 +157,15 @@ def save_transcript(result, report_text: str) -> None:
     console.print(f"\n[green]Transcript saved to[/green] [bold]{filepath}[/bold]")
 
 
-async def run_interview() -> None:
+def save_json_output(result, output_path: str) -> None:
+    data = result.model_dump(mode="json")
+    path = Path(output_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+    console.print(f"\n[green]JSON output saved to[/green] [bold]{path}[/bold]")
+
+
+async def run_interview(verbose: bool = False, output: str | None = None) -> None:
     engine = InterviewEngine()
 
     profile = collect_profile()
@@ -177,6 +204,9 @@ async def run_interview() -> None:
                 f"\n[dim]Turn {state['current_turn']}/{state['max_turns']} | Topic: {state['current_topic']}[/dim]"
             )
 
+            if verbose:
+                print_verbose_evaluation(evaluation)
+
             if next_question is None:
                 console.print("\n[bold]Interview complete![/bold]")
                 break
@@ -199,10 +229,17 @@ async def run_interview() -> None:
 
     if not interrupted:
         result = engine.get_result()
+        if output:
+            save_json_output(result, output)
         save_transcript(result, report_text)
 
 
 def main() -> None:
+    args = parse_args()
+
+    if args.verbose:
+        set_verbose(True)
+
     console.print(
         Panel(
             "[bold]Practice interviews powered by AI agents[/bold]\n\n"
@@ -219,7 +256,7 @@ def main() -> None:
         sys.exit(1)
 
     try:
-        asyncio.run(run_interview())
+        asyncio.run(run_interview(verbose=args.verbose, output=args.output))
     except Exception as e:
         console.print(f"\n[red]Error: {e}[/red]")
         sys.exit(1)

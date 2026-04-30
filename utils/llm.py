@@ -1,24 +1,29 @@
 import asyncio
 import json
-import os
+import time
 from pathlib import Path
 from typing import TypeVar
 
 from openai import APIError, APITimeoutError, AsyncOpenAI, RateLimitError
 from pydantic import BaseModel
 
+from utils.config import get_settings
+from utils.logger import get_logger
+
 T = TypeVar("T", bound=BaseModel)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+logger = get_logger("llm")
 
 
 class LLMClient:
     def __init__(self, model: str | None = None) -> None:
+        settings = get_settings()
         self._client = AsyncOpenAI(
-            api_key=os.getenv("OPENAI_API_KEY"),
-            base_url=os.getenv("OPENAI_BASE_URL") or None,
+            api_key=settings.openai_api_key,
+            base_url=settings.openai_base_url or None,
         )
-        self.model = model or os.getenv("LLM_MODEL", "gpt-4o-mini")
+        self.model = model or settings.llm_model
 
     async def call(
         self,
@@ -62,6 +67,7 @@ class LLMClient:
         last_exc: Exception | None = None
         for attempt in range(3):
             try:
+                start = time.monotonic()
                 response = await self._client.chat.completions.create(
                     model=self.model,
                     messages=[
@@ -70,9 +76,12 @@ class LLMClient:
                     ],
                     temperature=temperature,
                 )
+                elapsed = time.monotonic() - start
+                logger.debug("LLM call completed in %.2fs (model=%s)", elapsed, self.model)
                 return response.choices[0].message.content or ""
             except (RateLimitError, APIError, APITimeoutError) as exc:
                 last_exc = exc
+                logger.warning("LLM call attempt %d failed: %s", attempt + 1, exc)
                 if attempt < 2:
                     await asyncio.sleep(2**attempt)
         raise last_exc  # type: ignore[misc]

@@ -8,6 +8,9 @@ from models import (
 )
 from orchestrator.state import InterviewStateManager
 from utils import LLMClient
+from utils.logger import get_logger
+
+logger = get_logger("engine")
 
 
 class InterviewEngine:
@@ -23,7 +26,9 @@ class InterviewEngine:
 
     async def start_interview(self, profile: CandidateProfile) -> tuple[InterviewPlan, str]:
         self._profile = profile
+        logger.debug("Starting interview for role: %s", profile.target_role)
         plan = await self.planner.create_plan(profile)
+        logger.debug("Plan created: %d topics, %d turns", len(plan.topics), plan.total_turns)
         self.state_manager = InterviewStateManager(plan)
 
         first_question = await self.interviewer.generate_question(
@@ -51,9 +56,17 @@ class InterviewEngine:
         sm.add_evaluation(evaluation)
 
         if sm.should_conclude():
+            logger.debug("Interview concluding (turn %d/%d)", sm.current_turn, sm.max_turns)
             return None, evaluation
 
         action = sm.decide_next_action(evaluation)
+        logger.debug(
+            "Turn %d: action=%s, score=%.1f, signals=%s",
+            sm.current_turn,
+            action,
+            evaluation.overall_score,
+            [s.value for s in evaluation.signals],
+        )
         if action == "conclude":
             return None, evaluation
 
@@ -75,6 +88,7 @@ class InterviewEngine:
         sm = self.state_manager
         assert sm is not None
         assert self._profile is not None
+        logger.debug("Generating feedback from %d evaluations", len(sm.evaluations))
 
         self._feedback = await self.coach.generate_feedback(
             profile=self._profile,
