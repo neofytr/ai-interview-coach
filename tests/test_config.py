@@ -6,27 +6,27 @@ from utils.config import Settings
 
 class TestSettingsDefaults:
     def test_default_llm_model(self):
-        settings = Settings(openai_api_key="test")
+        settings = Settings(openai_api_key="test", _env_file=None)
         assert settings.llm_model == "gpt-4o-mini"
 
     def test_default_embedding_model(self):
-        settings = Settings(openai_api_key="test")
+        settings = Settings(openai_api_key="test", _env_file=None)
         assert settings.embedding_model == "text-embedding-3-small"
 
     def test_default_enable_rag(self):
-        settings = Settings(openai_api_key="test")
+        settings = Settings(openai_api_key="test", _env_file=None)
         assert settings.enable_rag is True
 
     def test_default_enable_web_search(self):
-        settings = Settings(openai_api_key="test")
+        settings = Settings(openai_api_key="test", _env_file=None)
         assert settings.enable_web_search is True
 
     def test_default_verbose(self):
-        settings = Settings(openai_api_key="test")
+        settings = Settings(openai_api_key="test", _env_file=None)
         assert settings.verbose is False
 
     def test_default_log_level(self):
-        settings = Settings(openai_api_key="test")
+        settings = Settings(openai_api_key="test", _env_file=None)
         assert settings.log_level == "WARNING"
 
     def test_default_api_key_empty(self, monkeypatch):

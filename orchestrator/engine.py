@@ -34,6 +34,7 @@ class InterviewEngine:
         first_question = await self.interviewer.generate_question(
             plan=plan,
             conversation=[],
+            profile=profile,
         )
         self.state_manager.add_message("interviewer", first_question)
         self.state_manager.current_turn += 1
@@ -76,6 +77,7 @@ class InterviewEngine:
         next_question = await self.interviewer.generate_question(
             plan=sm.plan,
             conversation=sm.conversation,
+            profile=self._profile,
             evaluation_signals=evaluation.signals,
             follow_up_suggestion=evaluation.follow_up_suggestion,
         )

@@ -11,7 +11,9 @@ class FocusArea(StrEnum):
 
 
 class CandidateProfile(BaseModel):
+    name: str
     target_role: str
+    experience_level: str = "mid"
     background: str | None = None
     focus_area: FocusArea
 

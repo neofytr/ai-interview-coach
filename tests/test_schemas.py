@@ -24,19 +24,24 @@ class TestFocusArea:
 
 class TestCandidateProfile:
     def test_valid_creation(self):
-        profile = CandidateProfile(target_role="PM", focus_area=FocusArea.mixed)
+        profile = CandidateProfile(name="Alex", target_role="PM", focus_area=FocusArea.mixed)
         assert profile.target_role == "PM"
+        assert profile.name == "Alex"
 
     def test_optional_background_defaults_none(self):
-        profile = CandidateProfile(target_role="PM", focus_area=FocusArea.mixed)
+        profile = CandidateProfile(name="Alex", target_role="PM", focus_area=FocusArea.mixed)
         assert profile.background is None
 
+    def test_default_experience_level(self):
+        profile = CandidateProfile(name="Alex", target_role="PM", focus_area=FocusArea.mixed)
+        assert profile.experience_level == "mid"
+
     def test_accepts_background(self):
-        profile = CandidateProfile(target_role="PM", focus_area=FocusArea.mixed, background="5 years exp")
+        profile = CandidateProfile(name="Alex", target_role="PM", focus_area=FocusArea.mixed, background="5 years exp")
         assert profile.background == "5 years exp"
 
     def test_accepts_none_background(self):
-        profile = CandidateProfile(target_role="PM", focus_area=FocusArea.mixed, background=None)
+        profile = CandidateProfile(name="Alex", target_role="PM", focus_area=FocusArea.mixed, background=None)
         assert profile.background is None
 
 

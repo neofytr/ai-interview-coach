@@ -17,6 +17,7 @@ from utils.mock_llm import MockLLMClient
 @pytest.fixture
 def sample_profile():
     return CandidateProfile(
+        name="Alex",
         target_role="Product Manager",
         focus_area=FocusArea.mixed,
     )

@@ -47,7 +47,13 @@ def render_sidebar_setup() -> None:
     st.sidebar.title("AI Interview Coach")
     st.sidebar.divider()
 
+    name = st.sidebar.text_input("Your Name", placeholder="e.g. Sarah")
     role = st.sidebar.text_input("Target Role", placeholder="e.g. Product Manager")
+    experience = st.sidebar.selectbox(
+        "Experience Level",
+        ["intern", "junior", "mid", "senior", "lead"],
+        index=2,
+    )
     background = st.sidebar.text_area(
         "Background (optional)",
         placeholder="2-3 line resume snippet",
@@ -60,12 +66,17 @@ def render_sidebar_setup() -> None:
     )
 
     if st.sidebar.button("Start Interview", type="primary", use_container_width=True):
+        if not name.strip():
+            st.sidebar.error("Please enter your name.")
+            return
         if not role.strip():
             st.sidebar.error("Please enter a target role.")
             return
 
         profile = CandidateProfile(
+            name=name.strip(),
             target_role=role.strip(),
+            experience_level=experience,
             background=background.strip() or None,
             focus_area=FocusArea(focus),
         )

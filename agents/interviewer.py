@@ -1,5 +1,5 @@
 from agents.base import BaseAgent
-from models import EvaluatorSignal, InterviewPlan, Message
+from models import CandidateProfile, EvaluatorSignal, InterviewPlan, Message
 from utils import LLMClient
 
 
@@ -11,6 +11,7 @@ class InterviewerAgent(BaseAgent):
         self,
         plan: InterviewPlan,
         conversation: list[Message],
+        profile: CandidateProfile | None = None,
         evaluation_signals: list[EvaluatorSignal] | None = None,
         follow_up_suggestion: str | None = None,
     ) -> str:
@@ -26,8 +27,11 @@ class InterviewerAgent(BaseAgent):
 
         suggestion_text = follow_up_suggestion or "None"
 
+        profile_text = profile.model_dump_json(indent=2) if profile else "Not provided"
+
         user_message = (
             f"<interview_plan>\n{plan.model_dump_json(indent=2)}\n</interview_plan>\n\n"
+            f"<candidate_profile>\n{profile_text}\n</candidate_profile>\n\n"
             f"<conversation_history>\n{conv_lines}\n</conversation_history>\n\n"
             f"<evaluator_signals>\n{signals_text}\n</evaluator_signals>\n\n"
             f"<follow_up_suggestion>\n{suggestion_text}\n</follow_up_suggestion>\n\n"

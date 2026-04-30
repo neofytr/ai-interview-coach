@@ -50,7 +50,13 @@ def check_api_key() -> bool:
 
 def collect_profile() -> CandidateProfile:
     console.print()
+    name = Prompt.ask("[bold cyan]Your name[/bold cyan]")
     role = Prompt.ask("[bold cyan]Target role[/bold cyan]")
+    experience = Prompt.ask(
+        "[bold cyan]Experience level[/bold cyan]",
+        choices=["intern", "junior", "mid", "senior", "lead"],
+        default="mid",
+    )
     background = Prompt.ask(
         "[bold cyan]Background[/bold cyan] [dim](optional, press Enter to skip)[/dim]",
         default="",
@@ -61,7 +67,9 @@ def collect_profile() -> CandidateProfile:
         default="mixed",
     )
     return CandidateProfile(
+        name=name,
         target_role=role,
+        experience_level=experience,
         background=background or None,
         focus_area=FocusArea(focus),
     )

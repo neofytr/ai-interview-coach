@@ -19,7 +19,7 @@ def engine():
 
 @pytest.fixture
 def profile():
-    return CandidateProfile(target_role="Product Manager", focus_area=FocusArea.mixed)
+    return CandidateProfile(name="Test", target_role="Product Manager", focus_area=FocusArea.mixed)
 
 
 @pytest.mark.asyncio

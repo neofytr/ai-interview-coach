@@ -39,19 +39,19 @@ class TestBaseAgent:
 class TestPlannerAgent:
     async def test_create_plan_returns_interview_plan(self, mock_llm):
         agent = PlannerAgent(mock_llm)
-        profile = CandidateProfile(target_role="PM", focus_area=FocusArea.mixed)
+        profile = CandidateProfile(name="Test", target_role="PM", focus_area=FocusArea.mixed)
         plan = await agent.create_plan(profile)
         assert isinstance(plan, InterviewPlan)
 
     async def test_plan_has_topics(self, mock_llm):
         agent = PlannerAgent(mock_llm)
-        profile = CandidateProfile(target_role="PM", focus_area=FocusArea.mixed)
+        profile = CandidateProfile(name="Test", target_role="PM", focus_area=FocusArea.mixed)
         plan = await agent.create_plan(profile)
         assert len(plan.topics) > 0
 
     async def test_plan_has_dimensions(self, mock_llm):
         agent = PlannerAgent(mock_llm)
-        profile = CandidateProfile(target_role="PM", focus_area=FocusArea.mixed)
+        profile = CandidateProfile(name="Test", target_role="PM", focus_area=FocusArea.mixed)
         plan = await agent.create_plan(profile)
         assert len(plan.evaluation_dimensions) > 0
 
@@ -111,7 +111,7 @@ class TestInterviewerAgent:
 class TestCoachAgent:
     async def test_returns_feedback_report(self, mock_llm, sample_plan):
         agent = CoachAgent(mock_llm)
-        profile = CandidateProfile(target_role="PM", focus_area=FocusArea.mixed)
+        profile = CandidateProfile(name="Test", target_role="PM", focus_area=FocusArea.mixed)
         conversation = [
             Message(role="interviewer", content="Tell me about leadership", turn_number=1),
             Message(role="candidate", content="I led a team", turn_number=1),
