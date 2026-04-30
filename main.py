@@ -151,7 +151,9 @@ def save_transcript(result, report_text: str) -> None:
 
     lines = [
         "# Mock Interview Transcript\n",
+        f"**Candidate:** {result.profile.name}",
         f"**Role:** {result.profile.target_role}",
+        f"**Experience:** {result.profile.experience_level}",
         f"**Background:** {result.profile.background or 'Not provided'}",
         f"**Focus Area:** {result.profile.focus_area.value}\n",
         "---\n",

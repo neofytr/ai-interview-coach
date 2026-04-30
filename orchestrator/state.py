@@ -57,4 +57,5 @@ class InterviewStateManager:
         self.current_topic_index += 1
 
     def get_current_topic(self) -> InterviewTopic:
-        return self.plan.topics[self.current_topic_index]
+        idx = min(self.current_topic_index, len(self.plan.topics) - 1)
+        return self.plan.topics[idx]

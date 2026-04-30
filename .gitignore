@@ -7,13 +7,11 @@ venv/
 dist/
 build/
 
-# Local planning docs — not for the repo
+# Local notes
 CLAUDE.md
 IMPLEMENTATION_SPEC.md
 FILE_GRAPH.md
-PHASE7_SPEC.md
-PHASE8_SPEC.md
-PHASE9_SPEC.md
+PHASE*.md
 
 # RAG embedding cache
 .embedding_cache.json

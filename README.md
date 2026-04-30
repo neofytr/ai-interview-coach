@@ -5,210 +5,113 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 
-A multi-agent AI system that conducts adaptive mock interviews and delivers actionable coaching feedback.
+A multi-agent system that runs adaptive mock interviews and gives you real feedback afterwards. Four agents work together: one plans the interview, one asks questions, one silently evaluates your answers in real time, and one writes up a coaching report at the end.
 
-## Overview
+The key thing that makes this different from a static question list is the evaluation loop. After every answer, the evaluator scores you and sends signals back to the interviewer (probe deeper, move on, increase difficulty, etc.), so the conversation adapts to how you're actually doing.
 
-This system uses four specialized AI agents — Planner, Interviewer, Evaluator, and Coach — orchestrated through a state machine to simulate realistic interview practice. Unlike static question lists, the interviewer adapts in real time based on invisible evaluation signals: probing deeper on weak answers, increasing difficulty for strong candidates, and redirecting off-topic responses. After the interview, a coaching agent synthesizes all evaluations into a detailed feedback report with scores, evidence-based strengths/weaknesses, and concrete practice recommendations.
-
-## Architecture
-
-### Agents
-
-| Agent | Role | Input -> Output |
-|-------|------|----------------|
-| **Planner** | Designs the interview strategy — selects topics, evaluation dimensions, and difficulty progression based on the target role and candidate background. Enriched by RAG knowledge retrieval and web search. Runs once at the start. | CandidateProfile -> InterviewPlan (JSON) |
-| **Interviewer** | Conducts the conversation. Asks questions, follows up, handles edge cases (candidate says "I don't know", goes off-topic, gives one-word answers). Adapts based on evaluator signals. | Plan + History + Signals -> Next question (text) |
-| **Evaluator** | Scores each answer against weighted dimensions (1-10) and emits signals (`probe_deeper`, `move_on`, `increase_difficulty`, `decrease_difficulty`, `redirect`) that drive interviewer adaptation. Invisible to the candidate. | Question + Answer + Rubric -> TurnEvaluation (JSON) |
-| **Coach** | Synthesizes all evaluations into a final feedback report. Identifies patterns across answers, maps scores to a hiring signal, and generates specific practice questions and action items. | Full transcript + Evaluations -> FeedbackReport (JSON) |
-
-### Orchestration Flow
+## How It Works
 
 ```
-Candidate Profile -> Planner -> Interview Plan
-                                    |
-              +-------------------------------------+
-              |         Interview Loop              |
-              |  Interviewer -> Candidate -> Evaluator|
-              |       ^                      |      |
-              |       +-- signals -----------+      |
-              +-------------------------------------+
-                                    |
-                    Evaluations -> Coach -> Feedback Report
+You fill in your profile -> Planner creates interview strategy
+                                      |
+                +-------------------------------------+
+                |         Interview Loop              |
+                |  Interviewer -> You -> Evaluator    |
+                |       ^                    |        |
+                |       +-- signals ---------+        |
+                +-------------------------------------+
+                                      |
+                      All scores -> Coach -> Feedback Report
 ```
 
-The orchestrator is a state machine (`PLANNING -> INTERVIEWING <-> EVALUATING -> COACHING -> DONE`) that makes decisions each turn:
+The orchestrator runs a state machine that decides after each answer whether to follow up (max 2 per topic), move to the next topic, adjust difficulty, or wrap up. It's not just a for loop.
 
-- **Follow up or move on?** Based on evaluator signals and a per-topic follow-up limit (max 2) to prevent infinite probing.
-- **Adjust difficulty?** Evaluator signals propagate to the interviewer's next prompt.
-- **Conclude?** When all topics are covered or the turn budget is exhausted.
+**Agents:**
 
-### Question Bank
-
-The Planner agent is grounded by a curated question bank (`data/question_bank.json`) containing ~110 real interview questions across behavioral, technical, and case categories. When generating an interview plan, the planner receives questions filtered by the candidate's focus area and draws `suggested_questions` from this bank, adapting them to fit the specific role. This reduces hallucinated or generic questions while still allowing the planner to generate original questions when needed.
-
-### RAG Knowledge Base
-
-The system includes a curated knowledge base (`data/knowledge_base/`) with 14 markdown documents covering:
-
-- **Roles** (7 files): Software Engineer, Product Manager, Data Analyst, Data Scientist, Frontend Engineer, Backend Engineer, Engineering Manager — each with role-specific interview evaluation criteria, key competencies, and what separates good from great answers.
-- **Frameworks** (4 files): STAR Method, Case Interview, System Design, Competency-Based — structured interview frameworks with evaluation guidance.
-- **Rubrics** (3 files): Scoring Guide, Hiring Levels, Difficulty Calibration — standardized evaluation criteria.
-
-When RAG is enabled, the Planner retrieves relevant knowledge chunks using OpenAI embeddings (`text-embedding-3-small`) and cosine similarity. Embeddings are cached to `.embedding_cache.json` for efficiency. The retriever uses pure Python cosine similarity (no NumPy dependency).
-
-### Web Search
-
-When enabled, the Planner runs DuckDuckGo searches to gather current interview trends and role-specific context. Three queries are run per role, and results are included as supplementary context in the planning prompt. Web search degrades gracefully — if `duckduckgo-search` is not installed or search fails, the system continues without it.
-
-### Key Design Decisions
-
-- **4 agents, not 3.** Separating the Planner from the Interviewer lets the interview be strategic (role-adaptive topics, weighted dimensions) rather than just reactive. The Planner thinks about what *should* happen; the Interviewer handles what *is* happening.
-- **Real-time evaluation loop.** The Evaluator runs after every answer, emitting signals that the Interviewer consumes. This is what makes the interview adaptive — a strong answer triggers harder questions, a weak one triggers scaffolding.
-- **Pydantic structured outputs.** All inter-agent data flows through validated Pydantic models, not raw string parsing. The LLM client validates JSON responses against schemas and retries on parse failure.
-- **State machine with follow-up limits.** The orchestrator tracks follow-ups per topic (max 2) and enforces turn budgets, preventing runaway conversations while allowing natural probing depth.
-- **Dual interface.** CLI (`rich`) for developers and local testing; Streamlit for a polished web UI with radar charts and score progression. Both use the same engine — the interface layer is thin.
-- **Prompts as files.** Each agent's system prompt lives in its own `.md` file, loaded at init time via `pathlib`. Prompts are iterable without touching Python code.
-- **Graceful degradation.** Every optional feature (RAG, web search, verbose logging) degrades gracefully. If embeddings fail, search is unavailable, or config is missing, the core interview flow continues unaffected.
-- **Centralized configuration.** All settings managed through `pydantic-settings` with `.env` file support. No scattered `os.getenv()` calls.
-
-### Tradeoffs
-
-- **Single LLM for all agents.** All four agents use the same model (default: `gpt-4o-mini`). A production system might use a stronger model for the Evaluator/Coach (where accuracy matters most) and a faster one for the Interviewer (where latency matters most). Kept uniform here for simplicity and cost.
-- **Synchronous turn-taking.** The interview is strictly turn-based (question -> answer -> evaluate -> next question). A more advanced system could stream the interviewer's response or evaluate in parallel with the next question generation.
+| Agent | What it does | Output |
+|-------|-------------|--------|
+| Planner | Picks topics, dimensions, and difficulty based on your role and background. Pulls from a question bank, RAG knowledge base, and web search. | InterviewPlan (JSON) |
+| Interviewer | Asks questions, follows up, handles edge cases (IDK answers, off-topic, one-word responses). Adapts based on evaluator signals. | Plain text question |
+| Evaluator | Scores each answer 1-10 on weighted dimensions. Emits signals that drive the interviewer. You never see this during the interview. | TurnEvaluation (JSON) |
+| Coach | Reads through everything and writes a feedback report with scores, patterns, and specific things to work on. | FeedbackReport (JSON) |
 
 ## Setup
 
 ```bash
-git clone <repo-url>
-cd ai-mock-interview-coach
+git clone https://github.com/neofytr/ai-interview-coach.git
+cd ai-interview-coach
 pip install -r requirements.txt
 cp .env.example .env
-# Add your OpenAI API key to .env
+# add your API key to .env
 ```
 
-### Configuration
+Works with OpenAI, Gemini, or any OpenAI-compatible provider. Set `OPENAI_BASE_URL` in `.env` if you're not using OpenAI directly.
 
-All settings are managed through environment variables or a `.env` file via `pydantic-settings`:
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `OPENAI_API_KEY` | Yes | — | Your OpenAI API key |
-| `LLM_MODEL` | No | `gpt-4o-mini` | Model to use for all agents |
-| `OPENAI_BASE_URL` | No | — | Custom API base URL (for compatible providers) |
-| `EMBEDDING_MODEL` | No | `text-embedding-3-small` | Model for RAG embeddings |
-| `ENABLE_RAG` | No | `true` | Enable RAG knowledge retrieval |
-| `ENABLE_WEB_SEARCH` | No | `true` | Enable DuckDuckGo web search |
-| `VERBOSE` | No | `false` | Enable verbose debug logging |
-| `LOG_LEVEL` | No | `WARNING` | Logging level |
+| Variable | Default | What it does |
+|----------|---------|-------------|
+| `OPENAI_API_KEY` | (required) | API key |
+| `LLM_MODEL` | `gpt-4o-mini` | Model for all agents |
+| `OPENAI_BASE_URL` | | Custom API endpoint |
+| `ENABLE_RAG` | `true` | Pull from knowledge base during planning |
+| `ENABLE_WEB_SEARCH` | `true` | Search for current interview trends |
 
 ## Usage
 
-### CLI
+**CLI:**
 
 ```bash
-python main.py                    # Standard mode
-python main.py -v                 # Verbose mode (per-turn scores + debug logs)
-python main.py -o result.json     # Save full interview result as JSON
-python main.py --demo             # Demo mode — no API key needed
+python main.py              # normal mode
+python main.py -v            # shows per-turn scores after each answer
+python main.py --demo        # runs with mock responses, no API key needed
+python main.py -o result.json
 ```
 
-Interactive terminal interface with rich formatting. You'll be prompted for your target role, background, and focus area, then interviewed in real time. With `--verbose`, you'll see per-turn dimension scores and evaluator signals after each answer.
-
-Use `--demo` to try the system without an API key — it runs with pre-scripted mock responses that demonstrate the full interview flow, adaptive evaluation, and feedback generation.
-
-### Streamlit
+**Web UI:**
 
 ```bash
 streamlit run app.py
 ```
 
-Web UI with a chat interface, progress sidebar, and post-interview feedback tabs. If no API key is set, a "Try Demo Mode" button lets you explore the full UI with mock responses. Features include:
-- **Feedback tab:** Overall rating, summary, strengths/weaknesses, practice questions, action items
-- **Scores tab:** Radar chart of dimension averages, score progression line chart (overall and per-dimension across turns), dimension breakdown table
-- **Transcript tab:** Full conversation with expandable per-turn evaluations showing dimension scores, strengths, weaknesses, and evaluator signals
+Chat interface with progress tracking, radar charts, score progression graphs, and per-turn evaluation breakdowns. Has a demo mode button if you don't have an API key set up.
 
-## Running Tests
+## What's in the box
 
-```bash
-pytest tests/ -v
-```
-
-All tests use `MockLLMClient` — zero API calls required. The test suite covers:
-- **Schema validation** — Pydantic model constraints (score bounds, weight ranges, turn limits)
-- **State machine logic** — Follow-up limits, topic advancement, conclusion triggers, signal handling
-- **Engine integration** — Full interview flow from start through feedback generation
-- **Agent contracts** — Each agent returns the correct type with expected structure
-- **RAG retriever** — Document chunking, cosine similarity, index building, retrieval
-- **Web search** — Search result formatting, graceful failure handling
-- **Configuration** — Settings defaults, environment variable loading
+- **112 curated questions** across 14 subcategories (behavioral, technical, case) in `data/question_bank.json`
+- **14 knowledge base documents** covering 7 roles, 4 interview frameworks, and 3 scoring rubrics, used by the RAG retriever during planning
+- **Web search** via DuckDuckGo for current role-specific interview trends
+- **115 tests** using a mock LLM client (zero API calls). Run with `pytest tests/ -v`
+- **CI pipeline** on GitHub Actions: linting with ruff + tests on Python 3.11 and 3.12
 
 ## Example Transcripts
 
-Three example interviews demonstrating the system's adaptive behavior:
+Three sample interviews showing how the system adapts:
 
-| Transcript | Scenario | Rating |
-|-----------|----------|--------|
-| [Strong Candidate](transcripts/strong_candidate.md) | Product Manager with structured, metrics-driven answers. System increases difficulty and probes tradeoffs. | Strong Hire (8.2) |
-| [Weak Candidate](transcripts/weak_candidate.md) | Data Analyst bootcamp grad with shallow SQL/stats knowledge. System decreases difficulty and scaffolds. | Lean No Hire (4.2) |
-| [Edge Case](transcripts/edge_case.md) | Frontend Intern who gives a one-word answer, goes off-topic, asks a question back, then recovers. System redirects, probes, and adapts. | Lean Hire (5.8) |
+| Transcript | What happens | Result |
+|-----------|-------------|--------|
+| [Strong Candidate](transcripts/strong_candidate.md) | PM role, structured answers with metrics. System increases difficulty. | Strong Hire (8.2) |
+| [Weak Candidate](transcripts/weak_candidate.md) | Data Analyst, vague SQL answers. System scaffolds and decreases difficulty. | Lean No Hire (4.2) |
+| [Edge Case](transcripts/edge_case.md) | Frontend Intern, one-word answer, goes off-topic, asks a question back. System redirects. | Lean Hire (5.8) |
 
 ## Project Structure
 
 ```
-ai-mock-interview-coach/
-├── main.py                       # CLI entry point (Rich + argparse)
-├── app.py                        # Streamlit web app
-├── requirements.txt
-├── .env.example
-│
-├── models/
-│   └── schemas.py                # All Pydantic data models
-│
-├── utils/
-│   ├── config.py                 # Centralized settings (pydantic-settings)
-│   ├── logger.py                 # Structured logging to stderr
-│   ├── llm.py                    # Async OpenAI client with retries and JSON parsing
-│   ├── rag.py                    # RAG knowledge retriever with embedding cache
-│   ├── web_search.py             # DuckDuckGo web search wrapper
-│   └── mock_llm.py               # Mock client for testing (no API calls)
-│
-├── data/
-│   ├── question_bank.json        # Curated interview questions (~110 across 14 categories)
-│   └── knowledge_base/           # RAG knowledge documents
-│       ├── roles/                # 7 role-specific interview guides
-│       ├── frameworks/           # 4 interview framework guides
-│       └── rubrics/              # 3 evaluation rubric guides
-│
-├── prompts/
-│   ├── planner.md                # Planner agent system prompt
-│   ├── interviewer.md            # Interviewer agent system prompt
-│   ├── evaluator.md              # Evaluator agent system prompt
-│   └── coach.md                  # Coach agent system prompt
-│
-├── agents/
-│   ├── base.py                   # Base agent class
-│   ├── planner.py                # Interview plan generation (RAG + web search)
-│   ├── evaluator.py              # Per-turn answer evaluation
-│   ├── interviewer.py            # Adaptive question generation
-│   └── coach.py                  # Final feedback synthesis
-│
-├── orchestrator/
-│   ├── state.py                  # Interview state machine
-│   └── engine.py                 # Main orchestration engine
-│
-├── tests/
-│   ├── conftest.py               # Shared pytest fixtures
-│   ├── test_schemas.py           # Pydantic validation tests
-│   ├── test_state.py             # State machine logic tests
-│   ├── test_engine.py            # Integration tests
-│   ├── test_agents.py            # Agent contract tests
-│   ├── test_rag.py               # RAG retriever tests
-│   ├── test_web_search.py        # Web search tests
-│   └── test_config.py            # Configuration tests
-│
-└── transcripts/                  # Example interview transcripts
-    ├── strong_candidate.md
-    ├── weak_candidate.md
-    └── edge_case.md
+models/schemas.py        - Pydantic models (CandidateProfile, InterviewPlan, TurnEvaluation, etc.)
+utils/llm.py             - Async OpenAI client with retries and JSON parsing
+utils/rag.py             - Embedding-based knowledge retrieval with caching
+utils/web_search.py      - DuckDuckGo search wrapper
+utils/config.py          - Centralized settings via pydantic-settings
+agents/                  - Planner, Interviewer, Evaluator, Coach (each with its own prompt in prompts/)
+orchestrator/state.py    - Interview state machine with follow-up limits and turn budgets
+orchestrator/engine.py   - Ties everything together
+main.py                  - CLI (Rich)
+app.py                   - Streamlit web app
+tests/                   - 8 test files, 115 tests total
 ```
+
+## Design Notes
+
+The planner and interviewer are separate agents because the interview needs to be strategic, not just reactive. The planner thinks about what topics and dimensions matter for a given role; the interviewer handles the actual conversation. Keeping evaluation invisible to the candidate lets the system adapt without breaking the interview flow.
+
+All inter-agent data goes through Pydantic models, not string parsing. If the LLM returns bad JSON, the client retries with a repair prompt. If RAG or web search fails, the system continues without it. If there's no API key at all, demo mode uses pre-scripted responses so you can still see the full flow.
+
+Everything runs on a single model by default (gpt-4o-mini). In production you'd probably want a stronger model for evaluation and a faster one for the interviewer, but for this project keeping it uniform makes configuration simpler.
