@@ -107,11 +107,3 @@ main.py                  - CLI (Rich)
 app.py                   - Streamlit web app
 tests/                   - 8 test files, 115 tests total
 ```
-
-## Design Notes
-
-The planner and interviewer are separate agents because the interview needs to be strategic, not just reactive. The planner thinks about what topics and dimensions matter for a given role; the interviewer handles the actual conversation. Keeping evaluation invisible to the candidate lets the system adapt without breaking the interview flow.
-
-All inter-agent data goes through Pydantic models, not string parsing. If the LLM returns bad JSON, the client retries with a repair prompt. If RAG or web search fails, the system continues without it. If there's no API key at all, demo mode uses pre-scripted responses so you can still see the full flow.
-
-Everything runs on a single model by default (gpt-4o-mini). In production you'd probably want a stronger model for evaluation and a faster one for the interviewer, but for this project keeping it uniform makes configuration simpler.
